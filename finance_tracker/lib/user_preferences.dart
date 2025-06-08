@@ -11,14 +11,14 @@ class UserPreferences {
     return prefs.getString('username') ?? '';
   }
 
-  static Future<void> setMonthBudget(int number) async {
+  static Future<void> setMonthBudget(double number) async {
     final prefs = await SharedPreferences.getInstance();
-    await prefs.setInt('month_budget', number);
+    await prefs.setDouble('month_budget', number);
   }
 
-  static Future<int> getMonthBudget() async {
+  static Future<double> getMonthBudget() async {
     final prefs = await SharedPreferences.getInstance();
-    return prefs.getInt('month_budget') ?? 0;
+    return prefs.getDouble('month_budget') ?? 0;
   }
 
   static Future<void> setDarkModeFlag(bool flag) async {

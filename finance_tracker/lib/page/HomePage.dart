@@ -1,4 +1,7 @@
+import 'package:finance_tracker/service/database_service.dart';
+import 'package:finance_tracker/transaction_widget.dart';
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
@@ -8,31 +11,45 @@ class HomePage extends StatefulWidget {
 
 class _HomePageState extends State<HomePage> {
   String _name = '';
-  int _monthBudget = 0;
+  double _monthBudget = 0;
+  double _amountSpent = 0.0;
+
+  final DatabaseService _databaseService = DatabaseService.instance;
+
 
   @override
   void initState() {
     super.initState();
     _loadUserData();
+    _loadMonthlySpending();
+  }
+
+  Future<void> _loadMonthlySpending() async {
+    final now = DateTime.now();
+    final yearMonth = DateFormat('yyyy-MM').format(now);
+
+    final total = await _databaseService.getTotalForMonth(yearMonth);
+    setState(() {
+      _amountSpent = total;
+    });
   }
 
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
     setState(() {
       _name = prefs.getString('username') ?? 'User';
-      _monthBudget = prefs.getInt('month_budget') ?? 0;
+      _monthBudget = prefs.getDouble('month_budget') ?? 0;
     });
   }
 
   @override
   Widget build(BuildContext context) {
-    final double amountSpent = 2000.0;
-    final double progress = (_monthBudget > 0) ? (amountSpent / _monthBudget).clamp(0.0, 1.0) : 0.0;
+    final double progress = (_monthBudget > 0) ? (_amountSpent / _monthBudget).clamp(0.0, 1.0) : 0.0;
 
     // Determine color based on progress
     Color getProgressColor(double value) {
-      if (value < 0.5) return Colors.green;
-      if (value < 0.8) return Colors.orange;
+      if (value < 0.4) return Colors.green;
+      if (value < 0.7) return Colors.orange;
       return Colors.red;
     }
 
@@ -42,61 +59,74 @@ class _HomePageState extends State<HomePage> {
         backgroundColor: Colors.amber[800],
         title: const Text("Home"),
       ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Column(
-          children: [
-            Container(
-              width: double.infinity,
-              padding: const EdgeInsets.all(16),
-              decoration: BoxDecoration(
-                color: Colors.amber[600],
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black12,
-                    blurRadius: 6,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text("Welcome, $_name!",
-                      style: const TextStyle(
-                          fontSize: 20, fontWeight: FontWeight.bold)),
-                  const SizedBox(height: 8),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '£$amountSpent',
-                          style: TextStyle(
-                            fontSize: 20, 
-                            color: Colors.black54)
+      body: GestureDetector(
+        behavior: HitTestBehavior.opaque,
+        onTap: () {
+          FocusScope.of(context).unfocus();
+        },
+        child: Padding(
+          padding: const EdgeInsets.all(16.0),
+          child: Column(
+            children: [
+              // Welcome widget
+              Container(
+                width: double.infinity,
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: Colors.amber[600],
+                  borderRadius: BorderRadius.circular(16),
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black12,
+                      blurRadius: 6,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text("Welcome, $_name!",
+                        style: const TextStyle(
+                            fontSize: 20, fontWeight: FontWeight.bold)),
+                    const SizedBox(height: 8),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '£${_amountSpent.toStringAsFixed(2)}',
+                            style: TextStyle(
+                              fontSize: 20, 
+                              color: Colors.black54)
+                            ),
+                          TextSpan(
+                            text: '/£${_monthBudget.toStringAsFixed(2)}',
+                            style: TextStyle(fontSize: 30),
                           ),
-                        TextSpan(
-                          text: '/£$_monthBudget',
-                          style: TextStyle(fontSize: 30),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 16),
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(8),
-                    child: LinearProgressIndicator(
-                      minHeight: 10,
-                      value: progress,
-                      backgroundColor: Colors.grey[300],
-                      valueColor: AlwaysStoppedAnimation<Color>(getProgressColor(progress)),
+                    const SizedBox(height: 16),
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: LinearProgressIndicator(
+                        minHeight: 10,
+                        value: progress,
+                        backgroundColor: Colors.grey[300],
+                        valueColor: AlwaysStoppedAnimation<Color>(getProgressColor(progress)),
+                      ),
                     ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-          ],
+              // add transaction widget
+              AddTransactionWidget(
+                onTransactionAdded: () {
+                  _loadMonthlySpending();
+                },
+              ),
+            ],
+          ),
         ),
       ),
     );

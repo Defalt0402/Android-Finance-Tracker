@@ -23,7 +23,7 @@ class _UserSetupPageState extends State<UserSetupPage> {
   
   Future<void> _finishSetup() async {
     final name = nameController.text.trim();
-    final monthBudget = int.tryParse(numberController.text.trim());
+    final monthBudget = double.tryParse(numberController.text.trim());
 
     if (name.isEmpty || monthBudget == null) {
       ScaffoldMessenger.of(context).showSnackBar(
