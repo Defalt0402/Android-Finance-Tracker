@@ -1,15 +1,18 @@
 import 'package:finance_tracker/service/database_service.dart';
 import 'package:finance_tracker/transaction_widget.dart';
+import 'package:finance_tracker/main.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class HomePage extends StatefulWidget {
+  const HomePage({Key? key}) : super(key: key);
+  
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<HomePage> createState() => HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class HomePageState extends State<HomePage> with RouteAware {
   String _name = '';
   double _monthBudget = 0;
   double _amountSpent = 0.0;
@@ -40,6 +43,35 @@ class _HomePageState extends State<HomePage> {
       _name = prefs.getString('username') ?? 'User';
       _monthBudget = prefs.getDouble('month_budget') ?? 0;
     });
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    routeObserver.subscribe(this, ModalRoute.of(context)!);
+  }
+
+  @override
+  void dispose() {
+    routeObserver.unsubscribe(this);
+    super.dispose();
+  }
+
+  // Called when the current route has been pushed.
+  @override
+  void didPush() {
+    _loadMonthlySpending();
+  }
+
+  // Called when the current route is again visible after a pop.
+  @override
+  void didPopNext() {
+    _loadMonthlySpending();
+  }
+
+  Future<void> reloadData() async {
+    // Reload data here (e.g., update amount spent)
+    await _loadMonthlySpending();
   }
 
   @override

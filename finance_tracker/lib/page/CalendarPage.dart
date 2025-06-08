@@ -93,27 +93,42 @@ class _CalendarPageState extends State<CalendarPage> {
               child: _transactions.isEmpty
                   ? const Center(child: Text("No transactions for this day."))
                   : ListView.separated(
-                      itemCount: _transactions.length,
-                      separatorBuilder: (_, __) => const Divider(),
-                      itemBuilder: (_, index) {
-                        final txn = _transactions[index];
-                        return ListTile(
-                          contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                          title: Text(txn['reference'] ?? 'No reference'),
-                          trailing: Text(
-                            "£${txn['amount'].toStringAsFixed(2)}",
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              color: Colors.black87,
+                    itemCount: _transactions.length,
+                    separatorBuilder: (_, __) => const Divider(),
+                    itemBuilder: (_, index) {
+                      final txn = _transactions[index];
+                      return ListTile(
+                        contentPadding: const EdgeInsets.symmetric(horizontal: 0),
+                        title: Text(txn['reference'] ?? 'No reference'),
+                        trailing: Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Text(
+                              "£${txn['amount'].toStringAsFixed(2)}",
+                              style: const TextStyle(
+                                fontWeight: FontWeight.bold,
+                                color: Colors.black87,
+                              ),
                             ),
-                          ),
-                        );
-                      },
-                    ),
-            ),
-          ],
+                            IconButton(
+                              icon: const Icon(Icons.delete, color: Colors.red),
+                              onPressed: () async {
+                                final txnId = txn['id']; // your transaction ID field here
+                                if (txnId != null) {
+                                  await _databaseService.deleteTransaction(txnId);
+                                  _loadTransactionsForDay(_selectedDay!); // refresh list
+                                }
+                              },
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                  ),
+              ),
+            ],
+          ),
         ),
-      ),
 
     );
   }

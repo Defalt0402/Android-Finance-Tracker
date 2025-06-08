@@ -119,4 +119,9 @@ class DatabaseService {
     ''', [yearMonth]);
   }
 
+  Future<void> deleteTransaction(int id) async {
+    final db = await database;
+    await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
+  }
+
 }

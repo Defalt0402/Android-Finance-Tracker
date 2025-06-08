@@ -4,6 +4,8 @@ import 'page/HomePage.dart';
 import 'page/CalendarPage.dart';
 import 'page/UserSetupPage.dart'; 
 
+final RouteObserver<ModalRoute<void>> routeObserver = RouteObserver<ModalRoute<void>>();
+
 void main() {
   runApp(const MyApp());
 }
@@ -31,6 +33,7 @@ class _MyAppState extends State<MyApp> {
         '/setup': (context) => const UserSetupPage(),
         '/main': (context) => const MainApp(),
       },
+      navigatorObservers: [routeObserver],
       home: FutureBuilder<bool>(
         future: _isFirstTimeUser(),
         builder: (context, snapshot) {
@@ -57,11 +60,13 @@ class MainApp extends StatefulWidget {
 }
 
 class _MainAppState extends State<MainApp> {
+  final GlobalKey<HomePageState> _homePageKey = GlobalKey<HomePageState>();
   int currentIndex = 0;
-  final screens = [
-    HomePage(), 
-    CalendarPage()
-    ];
+
+  List<Widget> get screens => [
+    HomePage(key: _homePageKey),
+    CalendarPage(),
+  ];
 
   @override
   Widget build(BuildContext context) {
@@ -128,7 +133,13 @@ class _MainAppState extends State<MainApp> {
         selectedItemColor: Colors.white,
         unselectedItemColor: Colors.white54,
         currentIndex: currentIndex,
-        onTap: (index) => setState(() => currentIndex = index),
+        onTap: (index) {
+          setState(() => currentIndex = index);
+
+          if (index == 0) {
+            _homePageKey.currentState?.reloadData();
+          }
+        },
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: "Calendar"),
