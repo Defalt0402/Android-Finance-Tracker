@@ -1,3 +1,4 @@
+import 'package:intl/intl.dart';
 import 'package:path/path.dart';
 import 'package:sqflite/sqflite.dart';
 import 'package:sqflite/sqlite_api.dart';
@@ -107,6 +108,20 @@ class DatabaseService {
     );
   }
 
+  Future<List<Map<String, dynamic>>> getTransactionsForMonth(String yearMonth) async {
+    final db = await database;
+
+    final List<Map<String, dynamic>> results = await db.query(
+      'transactions',
+      where: 'date LIKE ?',
+      whereArgs: ['$yearMonth%'],
+      orderBy: 'date ASC',
+    );
+
+    return results;
+  }
+
+
   Future<List<Map<String, dynamic>>> getDailyTotalsForMonth(String yearMonth) async {
     final db = await database;
 
@@ -124,4 +139,44 @@ class DatabaseService {
     await db.delete('transactions', where: 'id = ?', whereArgs: [id]);
   }
 
+
+  // Get all transactions grouped by day for the last N days
+  Future<Map<String, double>> getDailySpending({int days = 30}) async {
+    final db = await database;
+    final result = await db.rawQuery('''
+      SELECT date, SUM(amount) as total
+      FROM transactions
+      WHERE date >= date('now', '-$days day')
+      GROUP BY date
+    ''');
+    return { for (var row in result) row['date'] as String : row['total'] as double };
+  }
+
+  // // Get total spending by category
+  // Future<Map<String, double>> getSpendingByCategory() async {
+  //   final db = await database;
+  //   final result = await db.rawQuery('''
+  //     SELECT category, SUM(amount) as total
+  //     FROM transactions
+  //     GROUP BY category
+  //   ''');
+  //   return { for (var row in result) row['category'] ?? 'Uncategorized' : row['total'] as double };
+  // }
+
+  // Get cumulative spending for current calendar month
+  Future<List<Map<String, dynamic>>> getMonthlySpendingTrend() async {
+    final db = await database;
+    final now = DateTime.now();
+    final firstDay = DateTime(now.year, now.month, 1);
+    final firstDayStr = DateFormat('yyyy-MM-dd').format(firstDay);
+    final result = await db.rawQuery('''
+      SELECT date, SUM(amount) as total
+      FROM transactions
+      WHERE date >= ?
+      GROUP BY date
+      ORDER BY date ASC
+    ''', [firstDayStr]);
+
+    return result;
+  }
 }
