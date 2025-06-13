@@ -13,6 +13,7 @@ class AddTransactionWidget extends StatefulWidget {
 
 class _AddTransactionWidgetState extends State<AddTransactionWidget> {
   bool isRecurring = false;
+  String _transactionType = 'spend'; 
 
   final TextEditingController _referenceController = TextEditingController();
   final TextEditingController _amountController = TextEditingController();
@@ -29,11 +30,11 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
     if (amount == null) return;
 
     if (!isRecurring) {
-      await DatabaseService.instance.insertTransaction(DateFormat('yyyy-MM-dd').format(singleDate), amount, reference);
+      await DatabaseService.instance.insertTransaction(DateFormat('yyyy-MM-dd').format(singleDate), amount, reference, _transactionType);
     } else {
       DateTime current = startDate;
       while (!current.isAfter(endDate)) {
-        await DatabaseService.instance.insertTransaction(DateFormat('yyyy-MM-dd').format(current), amount, reference);
+        await DatabaseService.instance.insertTransaction(DateFormat('yyyy-MM-dd').format(current), amount, reference, _transactionType);
         switch (frequency) {
           case 'Daily':
             current = current.add(Duration(days: 1));
@@ -67,12 +68,33 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          ToggleButtons(
-            isSelected: [!isRecurring, isRecurring],
-            onPressed: (index) => setState(() => isRecurring = index == 1),
-            children: const [
-              Padding(padding: EdgeInsets.all(8), child: Text("Single")),
-              Padding(padding: EdgeInsets.all(8), child: Text("Recurring")),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              ToggleButtons(
+                borderColor: Colors.black38,
+                selectedBorderColor: Colors.black38,
+                selectedColor: Colors.amber[900],
+                isSelected: [!isRecurring, isRecurring],
+                onPressed: (index) => setState(() => isRecurring = index == 1),
+                children: const [
+                  Padding(padding: EdgeInsets.all(8), child: Text("Single", style: TextStyle(color: Colors.black))),
+                  Padding(padding: EdgeInsets.all(8), child: Text("Recurring", style: TextStyle(color: Colors.black))),
+                ],
+              ),
+              ToggleButtons(
+                borderColor: Colors.black38,
+                selectedBorderColor: Colors.black38,
+                selectedColor: Colors.amber[900],
+                isSelected: [_transactionType == 'spend', _transactionType == 'gain'],
+                onPressed: (index) {
+                  setState(() => _transactionType = index == 0 ? 'spend' : 'gain');
+                },
+                children: const [
+                  Padding(padding: EdgeInsets.all(8), child: Text("Spend", style: TextStyle(color: Colors.black))),
+                  Padding(padding: EdgeInsets.all(8), child: Text("Gain", style: TextStyle(color: Colors.black))),
+                ],
+              ),
             ],
           ),
           const SizedBox(height: 12),

@@ -77,6 +77,7 @@ class HomePageState extends State<HomePage> with RouteAware {
 
   Future<void> reloadData() async {
     // Reload data here (e.g., update amount spent)
+    _loadUserData();
     await _loadMonthlySpending();
   }
 
@@ -87,17 +88,22 @@ class HomePageState extends State<HomePage> with RouteAware {
 
     // Prepare for graph 1: average daily spend (excluding outliers)
     final dailyMap = <int, List<double>>{};
-    for (var tx in transactions) {
-      final day = DateTime.parse(tx['date']).day;
-      dailyMap.putIfAbsent(day, () => []).add((tx['amount'] as num).toDouble());
-    }
-
     final weekdayTotals = List.generate(7, (_) => <double>[]);
+
     for (var tx in transactions) {
       final date = DateTime.parse(tx['date']);
-      final weekday = (date.weekday + 6) % 7; // 0 = Monday, ..., 6 = Sunday
-      weekdayTotals[weekday].add((tx['amount'] as num).toDouble());
+      final amount = (tx['amount'] as num).toDouble();
+      final type = tx['type'] ?? 'spend';
+
+      if (type == 'spend') {
+        final day = date.day;
+        dailyMap.putIfAbsent(day, () => []).add(amount);
+
+        final weekday = (date.weekday + 6) % 7;
+        weekdayTotals[weekday].add(amount);
+      }
     }
+
     final avgWeekdaySpend = weekdayTotals
         .map((dayList) => dayList.isEmpty ? 0.0 : dayList.reduce((a, b) => a + b) / dayList.length)
         .toList();
@@ -106,17 +112,27 @@ class HomePageState extends State<HomePage> with RouteAware {
     final List<FlSpot> spendingOverTime = [];
     double cumulative = 0;
     for (var i = 1; i <= now.day; i++) {
-      final amounts = dailyMap[i] ?? [];
-      final dayTotal = amounts.isEmpty
-          ? 0.0
-          : amounts.reduce((a, b) => a + b).toDouble();
-      cumulative += dayTotal;
+      final dayTxs = transactions.where((tx) {
+        final date = DateTime.parse(tx['date']);
+        return date.day == i;
+      });
+
+      double dayNetTotal = 0.0;
+      for (var tx in dayTxs) {
+        final amount = (tx['amount'] as num).toDouble();
+        final type = tx['type'] ?? 'spend';
+        dayNetTotal += type == 'spend' ? amount : -amount;
+      }
+
+      cumulative += dayNetTotal;
       spendingOverTime.add(FlSpot(i.toDouble(), cumulative));
     }
 
     // Graph 3: category totals using reference classification
     final categoryMap = <String, double>{};
     for (var tx in transactions) {
+      if (tx['type'] == 'gain') continue;
+
       final reference = tx['reference'] ?? '';
       final category = classifyCategory(reference);
       final amount = (tx['amount'] as num).toDouble();
