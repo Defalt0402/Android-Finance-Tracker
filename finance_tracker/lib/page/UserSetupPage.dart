@@ -40,11 +40,12 @@ class _UserSetupPageState extends State<UserSetupPage> {
   }
 
   Widget _buildStep1() {
+    final theme = Theme.of(context);
     return Center(
       child: Container(
         padding: EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.amber[600],
+          color: theme.primaryColorLight,
           borderRadius: BorderRadius.circular(8),
         ),
         child: Column(
@@ -75,15 +76,16 @@ class _UserSetupPageState extends State<UserSetupPage> {
   }
 
   Widget _buildStep2() {
+    final theme = Theme.of(context);
     return Center(
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.amber[600],
+          color: theme.primaryColorLight,
           borderRadius: BorderRadius.circular(8),
           boxShadow: const [
             BoxShadow(
-              color: Colors.black12,
+              color: Colors.black,
               blurRadius: 4,
               offset: Offset(0, 2),
             ),
@@ -119,10 +121,11 @@ class _UserSetupPageState extends State<UserSetupPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.amber[100],
+      backgroundColor: theme.drawerTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.amber[800],
+        backgroundColor: theme.primaryColor,
         title: const Center(child: Text("Welcome!")),
       ),
       body: Transform.translate(

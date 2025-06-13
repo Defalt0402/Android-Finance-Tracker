@@ -78,6 +78,7 @@ class HomePageState extends State<HomePage> with RouteAware {
   Future<void> reloadData() async {
     // Reload data here (e.g., update amount spent)
     _loadUserData();
+    _refreshGraphData();
     await _loadMonthlySpending();
   }
 
@@ -173,6 +174,7 @@ class HomePageState extends State<HomePage> with RouteAware {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final double progress = (_monthBudget > 0) ? (_amountSpent / _monthBudget).clamp(0.0, 1.0) : 0.0;
 
     // Determine color based on progress
@@ -183,10 +185,9 @@ class HomePageState extends State<HomePage> with RouteAware {
     }
 
     return Scaffold(
-      backgroundColor: Colors.amber[100],
+      backgroundColor: theme.drawerTheme.backgroundColor, 
       appBar: AppBar(
-        backgroundColor: Colors.amber[800],
-        title: const Text("Home"),
+        title: Text("Home"),
       ),
       body: GestureDetector(
         behavior: HitTestBehavior.opaque,
@@ -204,7 +205,7 @@ class HomePageState extends State<HomePage> with RouteAware {
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(
-                    color: Colors.amber[600],
+                    color: theme.primaryColorLight, 
                     borderRadius: BorderRadius.circular(16),
                     boxShadow: [
                       BoxShadow(
@@ -218,12 +219,13 @@ class HomePageState extends State<HomePage> with RouteAware {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text("Welcome, $_name!",
-                          style: const TextStyle(
-                              fontSize: 24, fontWeight: FontWeight.bold)),
+                          style: theme.textTheme.titleLarge?.copyWith(color: Colors.black),),
                       const Divider(color: Colors.black,),
                       Text("Montly Spending:",
-                          style: const TextStyle(
-                              fontSize: 20)),
+                          style: TextStyle(
+                              fontSize: 20,
+                              color: Colors.black,
+                              )),
                       const SizedBox(height: 8),
                       Text.rich(
                         TextSpan(

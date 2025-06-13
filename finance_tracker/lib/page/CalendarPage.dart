@@ -45,10 +45,11 @@ class _CalendarPageState extends State<CalendarPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
-      backgroundColor: Colors.amber[100],
+      backgroundColor: theme.drawerTheme.backgroundColor,
       appBar: AppBar(
-        backgroundColor: Colors.amber[800],
         title: const Text("Calendar"),
       ),
       body: Padding(
@@ -99,24 +100,28 @@ class _CalendarPageState extends State<CalendarPage> {
                       final txn = _transactions[index];
                       return ListTile(
                         contentPadding: const EdgeInsets.symmetric(horizontal: 0),
-                        title: Text(txn['reference'] ?? 'No reference'),
+                        title: Text(
+                          txn['reference'] ?? 'No reference',
+                          style: const TextStyle(fontSize: 18),
+                        ),
                         trailing: Row(
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
                               "£${txn['amount'].toStringAsFixed(2)}",
-                              style: const TextStyle(
+                              style: TextStyle(
+                                fontSize: 18,
                                 fontWeight: FontWeight.bold,
-                                color: Colors.black87,
+                                color: txn['type'] == 'spend' ? Colors.red : Colors.green,
                               ),
                             ),
                             IconButton(
                               icon: const Icon(Icons.delete, color: Colors.red),
                               onPressed: () async {
-                                final txnId = txn['id']; // your transaction ID field here
+                                final txnId = txn['id'];
                                 if (txnId != null) {
                                   await _databaseService.deleteTransaction(txnId);
-                                  _loadTransactionsForDay(_selectedDay!); // refresh list
+                                  _loadTransactionsForDay(_selectedDay!);
                                 }
                               },
                             ),

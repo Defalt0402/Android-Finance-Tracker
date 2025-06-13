@@ -64,12 +64,14 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Container(
       width: double.infinity,
       margin: const EdgeInsets.only(top: 16),
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.amber[600],
+        color: theme.primaryColorLight,
         borderRadius: BorderRadius.circular(16),
         boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 6)],
       ),
@@ -82,7 +84,8 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
               ToggleButtons(
                 borderColor: Colors.black38,
                 selectedBorderColor: Colors.black38,
-                selectedColor: Colors.amber[900],
+                selectedColor: theme.toggleButtonsTheme.selectedColor,
+                fillColor: theme.toggleButtonsTheme.fillColor,
                 isSelected: [!isRecurring, isRecurring],
                 onPressed: (index) => setState(() => isRecurring = index == 1),
                 children: const [
@@ -93,7 +96,7 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
               ToggleButtons(
                 borderColor: Colors.black38,
                 selectedBorderColor: Colors.black38,
-                selectedColor: Colors.amber[900],
+                selectedColor: theme.toggleButtonsTheme.selectedColor,
                 isSelected: [_transactionType == 'spend', _transactionType == 'gain'],
                 onPressed: (index) {
                   setState(() => _transactionType = index == 0 ? 'spend' : 'gain');
@@ -108,18 +111,18 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
           const SizedBox(height: 12),
           TextField(
             controller: _amountController,
-            decoration: const InputDecoration(labelText: 'Amount (£)'),
+            decoration: const InputDecoration(labelText: 'Amount (£)', labelStyle: TextStyle(color: Colors.black)),
             keyboardType: TextInputType.number,
           ),
           TextField(
             controller: _referenceController,
-            decoration: const InputDecoration(labelText: 'Reference'),
+            decoration: const InputDecoration(labelText: 'Reference', labelStyle: TextStyle(color: Colors.black)),
           ),
           const SizedBox(height: 8),
           if (!isRecurring)
             Row(
               children: [
-                const Text('Date: '),
+                const Text('Date: ', style: TextStyle(color: Colors.black),),
                 TextButton(
                   child: Text(DateFormat('yyyy-MM-dd').format(singleDate)),
                   onPressed: () async {
@@ -140,7 +143,9 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
               children: [
                 Row(
                   children: [
-                    const Text('Start: '),
+                    Text('Start: ',
+                      style: TextStyle(color: Colors.black),
+                    ),
                     TextButton(
                       child: Text(DateFormat('yyyy-MM-dd').format(startDate)),
                       onPressed: () async {
@@ -157,7 +162,9 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
                 ),
                 Row(
                   children: [
-                    const Text('End: '),
+                    const Text('End: ',
+                      style: TextStyle(color: Colors.black),
+                    ),
                     TextButton(
                       child: Text(DateFormat('yyyy-MM-dd').format(endDate)),
                       onPressed: () async {
@@ -178,6 +185,7 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
                   items: ['Daily', 'Weekly', 'Monthly']
                       .map((f) => DropdownMenuItem(value: f, child: Text(f)))
                       .toList(),
+                  style: TextStyle(color: Colors.black),
                 ),
               ],
             ),

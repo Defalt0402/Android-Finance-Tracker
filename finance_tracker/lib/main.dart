@@ -20,6 +20,29 @@ class MyApp extends StatefulWidget {
 }
 
 class _MyAppState extends State<MyApp> {
+  ThemeMode _themeMode = ThemeMode.light;
+
+  @override
+  void initState() {
+    super.initState();
+    _loadTheme();
+  }
+
+  Future<void> _loadTheme() async {
+    final prefs = await SharedPreferences.getInstance();
+    final isDark = prefs.getBool('isDarkMode') ?? false;
+    setState(() {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
+
+  Future<void> _toggleTheme(bool isDark) async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('isDarkMode', isDark);
+    setState(() {
+      _themeMode = isDark ? ThemeMode.dark : ThemeMode.light;
+    });
+  }
 
   Future<bool> _isFirstTimeUser() async {
     final prefs = await SharedPreferences.getInstance();
@@ -31,9 +54,39 @@ class _MyAppState extends State<MyApp> {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Finance Tracker',
+      theme: ThemeData(
+        brightness: Brightness.light,
+        primaryColor: Colors.amber[800],
+        primaryColorLight: Colors.amber[600],
+        appBarTheme: AppBarTheme(
+          backgroundColor: Colors.amber[800],
+          foregroundColor: Colors.black,  // text and icons in appbar
+        ),
+        drawerTheme: DrawerThemeData(
+          backgroundColor: Colors.amber[100],
+        ),
+        textTheme: TextTheme(
+          titleLarge: TextStyle(  // headline6 is often used for titles like DrawerHeader
+            color: Colors.black, // set drawer header text color here
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        bottomNavigationBarTheme: BottomNavigationBarThemeData(
+          backgroundColor: Colors.amber[800],
+          selectedItemColor: Colors.white,
+          unselectedItemColor: Colors.white54,
+        ),
+        toggleButtonsTheme: ToggleButtonsThemeData(
+          selectedColor: Colors.amber[900],
+          fillColor: Colors.amber[900],
+        )
+      ),
+      darkTheme: ThemeData.dark(),  // you can customize this too
+      themeMode: _themeMode,
       routes: {
         '/setup': (context) => const UserSetupPage(),
-        '/main': (context) => const MainApp(),
+        '/main': (context) => MainApp(toggleTheme: _toggleTheme),
         '/settings': (context) => const SettingsPage(),
       },
       navigatorObservers: [routeObserver],
@@ -47,7 +100,7 @@ class _MyAppState extends State<MyApp> {
           }
 
           final isNewUser = snapshot.data!;
-          return isNewUser ? const UserSetupPage() : const MainApp();
+          return isNewUser ? const UserSetupPage() : MainApp(toggleTheme: _toggleTheme);
         },
       ),
     );
@@ -56,7 +109,8 @@ class _MyAppState extends State<MyApp> {
 
 // Your main app with tabs (Home and Calendar)
 class MainApp extends StatefulWidget {
-  const MainApp({super.key});
+  final Future<void> Function(bool) toggleTheme;
+  const MainApp({Key? key, required this.toggleTheme}) : super(key: key);
 
   @override
   State<MainApp> createState() => _MainAppState();
@@ -77,30 +131,25 @@ class _MainAppState extends State<MainApp> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        backgroundColor: Colors.amber[800],
+        backgroundColor: Theme.of(context).appBarTheme.backgroundColor,
         centerTitle: true,
-        title: const Text(
+        title: Text(
           "Finance Tracker",
-          style: TextStyle(
-            color: Colors.black,
-          ),
+          style: Theme.of(context).textTheme.titleLarge,
         ),
       ),
 
       drawer: Drawer(
-        backgroundColor: Colors.amber[100],
+        backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
         child: ListView(
           padding: EdgeInsets.zero,
           children: [
-            const DrawerHeader(
-              decoration: BoxDecoration(color: Colors.amber),
+            DrawerHeader(
+              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
               child: Center(
                 child: Text(
                   'Menu',
-                  style: TextStyle(
-                    color: Colors.black,
-                    fontSize: 24,
-                  ),
+                  style: Theme.of(context).textTheme.titleLarge,
                 ),
               ),
             ),
@@ -109,10 +158,13 @@ class _MainAppState extends State<MainApp> {
             ListTile(
               leading: const Icon(Icons.dark_mode),
               title: const Text('Toggle Dark Mode'),
-              onTap: () {
-                Navigator.pop(context);
+              onTap: () async {
+                final prefs = await SharedPreferences.getInstance();
+                final isDark = prefs.getBool('isDarkMode') ?? false;
+                await widget.toggleTheme(!isDark);
+
                 ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Dark Mode toggle not yet implemented')),
+                  SnackBar(content: Text('Dark mode ${!isDark ? "enabled" : "disabled"}')),
                 );
               },
             ),
@@ -173,10 +225,30 @@ class _MainAppState extends State<MainApp> {
               leading: const Icon(Icons.restore),
               title: const Text('Reset Preferences'),
               onTap: () async {
-                final prefs = await SharedPreferences.getInstance();
-                await prefs.clear();
-                Navigator.of(context).pop();
-                Navigator.pushReplacementNamed(context, '/setup');
+                final confirm = await showDialog<bool>(
+                  context: context,
+                  builder: (context) => AlertDialog(
+                    title: const Text('Confirm Reset'),
+                    content: const Text('This will clear your preferences and restart setup. Continue?'),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, false),
+                        child: const Text('Cancel'),
+                      ),
+                      TextButton(
+                        onPressed: () => Navigator.pop(context, true),
+                        child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                      ),
+                    ],
+                  ),
+                );
+
+                if (confirm == true) {
+                  final prefs = await SharedPreferences.getInstance();
+                  await prefs.clear();
+                  Navigator.of(context).pop(); // close drawer
+                  Navigator.pushReplacementNamed(context, '/setup');
+                }
               },
             ),
           ],
@@ -191,9 +263,9 @@ class _MainAppState extends State<MainApp> {
       
       bottomNavigationBar: BottomNavigationBar(
         type: BottomNavigationBarType.fixed,
-        backgroundColor: Colors.amber[800],
-        selectedItemColor: Colors.white,
-        unselectedItemColor: Colors.white54,
+        backgroundColor: Theme.of(context).bottomNavigationBarTheme.backgroundColor,
+        selectedItemColor: Theme.of(context).bottomNavigationBarTheme.selectedItemColor,
+        unselectedItemColor: Theme.of(context).bottomNavigationBarTheme.unselectedItemColor,
         currentIndex: currentIndex,
         onTap: (index) {
           setState(() => currentIndex = index);

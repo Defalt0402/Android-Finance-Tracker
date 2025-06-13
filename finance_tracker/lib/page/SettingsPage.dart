@@ -40,13 +40,14 @@ class _SettingsPageState extends State<SettingsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+
     return Scaffold(
       appBar: AppBar(
-        title: const Text('Settings', style: TextStyle(color: Colors.black)),
-        backgroundColor: Colors.amber[800],
+        title: const Text('Settings'),
         iconTheme: const IconThemeData(color: Colors.black),
       ),
-      backgroundColor: Colors.amber[50],
+      backgroundColor: theme.drawerTheme.backgroundColor,
       body: Padding(
         padding: const EdgeInsets.all(20),
         child: Column(
@@ -82,7 +83,7 @@ class _SettingsPageState extends State<SettingsPage> {
               child: ElevatedButton(
                 onPressed: _savePreferences,
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.amber[800],
+                  backgroundColor: theme.primaryColorLight,
                   foregroundColor: Colors.black,
                   padding: const EdgeInsets.symmetric(vertical: 14),
                 ),
