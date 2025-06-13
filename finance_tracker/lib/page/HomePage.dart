@@ -242,6 +242,7 @@ class HomePageState extends State<HomePage> with RouteAware {
                 AddTransactionWidget(
                   onTransactionAdded: () {
                     _loadMonthlySpending();
+                    _refreshGraphData();
                   },
                 ),
                 const SizedBox(height: 20),
