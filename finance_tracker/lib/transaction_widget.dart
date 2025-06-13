@@ -27,7 +27,12 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
     final double? amount = double.tryParse(_amountController.text);
     final String reference = _referenceController.text;
 
-    if (amount == null) return;
+    if (amount == null || amount <= 0) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('Please enter a valid amount')),
+      );
+      return;
+    }
 
     if (!isRecurring) {
       await DatabaseService.instance.insertTransaction(DateFormat('yyyy-MM-dd').format(singleDate), amount, reference, _transactionType);
@@ -43,7 +48,10 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
             current = current.add(Duration(days: 7));
             break;
           case 'Monthly':
-            current = DateTime(current.year, current.month + 1, current.day);
+            final nextMonth = DateTime(current.year, current.month + 1, 1);
+            final lastDayOfNextMonth = DateTime(nextMonth.year, nextMonth.month + 1, 0).day;
+            final day = current.day <= lastDayOfNextMonth ? current.day : lastDayOfNextMonth;
+            current = DateTime(nextMonth.year, nextMonth.month, day);
             break;
         }
       }
