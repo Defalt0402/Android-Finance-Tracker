@@ -1,4 +1,5 @@
 import 'package:finance_tracker/page/SettingsPage.dart';
+import 'package:finance_tracker/page/TransactionHistoryPage.dart';
 import 'package:finance_tracker/service/database_service.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -88,6 +89,7 @@ class _MyAppState extends State<MyApp> {
         '/setup': (context) => const UserSetupPage(),
         '/main': (context) => MainApp(toggleTheme: _toggleTheme),
         '/settings': (context) => const SettingsPage(),
+        '/transactions': (context) => TransactionHistoryPage(),
       },
       navigatorObservers: [routeObserver],
       home: FutureBuilder<bool>(
@@ -125,6 +127,7 @@ class _MainAppState extends State<MainApp> {
   List<Widget> get screens => [
     HomePage(key: _homePageKey),
     CalendarPage(),
+    TransactionHistoryPage()
   ];
 
   @override
@@ -277,6 +280,7 @@ class _MainAppState extends State<MainApp> {
         items: const [
           BottomNavigationBarItem(icon: Icon(Icons.home), label: "Home"),
           BottomNavigationBarItem(icon: Icon(Icons.calendar_month_outlined), label: "Calendar"),
+          BottomNavigationBarItem(icon: Icon(Icons.list_alt_outlined), label: "Transactions"),
         ],
       ),
     );

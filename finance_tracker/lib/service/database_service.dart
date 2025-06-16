@@ -135,6 +135,43 @@ class DatabaseService {
     return results;
   }
 
+  Future<List<Map<String, dynamic>>> getAllTransactions() async {
+    final db = await database;
+
+    return await db.query(
+      'transactions',
+      orderBy: 'date DESC, id DESC' // newest dates first, then most recent within the day
+    );
+  }
+
+  /// All transactions in descending date order
+  Future<List<Map<String, dynamic>>> getAllPastTransactions() async {
+    final db = await database;
+    final today = DateTime.now();
+    final todayStr = today.toIso8601String().split('T').first;
+
+    return await db.query(
+      'transactions',
+      where: "date <= ?",
+      whereArgs: [todayStr],
+      orderBy: "date DESC, id DESC",
+    );
+  }
+
+  /// Future-dated transactions (upcoming)
+  Future<List<Map<String, dynamic>>> getUpcomingTransactions() async {
+    final db = await database;
+    final today = DateTime.now();
+    final todayStr = today.toIso8601String().split('T').first;
+
+    return await db.query(
+      'transactions',
+      where: "date > ?",
+      whereArgs: [todayStr],
+      orderBy: "date ASC",
+    );
+  }
+
   Future<void> deleteTransaction(int id) async {
     final db = await database;
     await db.delete('transactions', where: 'id = ?', whereArgs: [id]);

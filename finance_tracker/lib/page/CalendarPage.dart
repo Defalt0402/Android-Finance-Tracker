@@ -108,7 +108,7 @@ class _CalendarPageState extends State<CalendarPage> {
                           mainAxisSize: MainAxisSize.min,
                           children: [
                             Text(
-                              "£${txn['amount'].toStringAsFixed(2)}",
+                              "${txn['type'] == 'spend' ? '-' : '+'}£${txn['amount'].toStringAsFixed(2)}",
                               style: TextStyle(
                                 fontSize: 18,
                                 fontWeight: FontWeight.bold,
