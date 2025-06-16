@@ -51,7 +51,7 @@ class _MyAppState extends State<MyApp> {
     return name == null || name.isEmpty;
   }
 
-    @override
+  @override
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Finance Tracker',
@@ -146,120 +146,138 @@ class _MainAppState extends State<MainApp> {
 
       drawer: Drawer(
         backgroundColor: Theme.of(context).drawerTheme.backgroundColor,
-        child: ListView(
-          padding: EdgeInsets.zero,
+        child: Column(
           children: [
-            DrawerHeader(
-              decoration: BoxDecoration(color: Theme.of(context).primaryColor),
-              child: Center(
-                child: Text(
-                  'Menu',
-                  style: Theme.of(context).textTheme.titleLarge,
-                ),
+            Expanded(
+              child: ListView(
+                padding: EdgeInsets.zero,
+                children: [
+                  DrawerHeader(
+                    decoration: BoxDecoration(color: Theme.of(context).primaryColor),
+                    child: Center(
+                      child: Text(
+                        'Menu',
+                        style: Theme.of(context).textTheme.titleLarge,
+                      ),
+                    ),
+                  ),
+
+                  // Dark Mode Toggle
+                  ListTile(
+                    leading: const Icon(Icons.dark_mode),
+                    title: const Text('Toggle Dark Mode'),
+                    onTap: () async {
+                      final prefs = await SharedPreferences.getInstance();
+                      final isDark = prefs.getBool('isDarkMode') ?? false;
+                      await widget.toggleTheme(!isDark);
+
+                      ScaffoldMessenger.of(context).showSnackBar(
+                        SnackBar(content: Text('Dark mode ${!isDark ? "enabled" : "disabled"}')),
+                      );
+                    },
+                  ),
+
+                  // Go to Settings
+                  ListTile(
+                    leading: const Icon(Icons.settings),
+                    title: const Text('Settings'),
+                    onTap: () async {
+                      Navigator.of(context).pop(); // Close drawer first
+
+                      // Push settings page and wait for it to return
+                      await Navigator.pushNamed(context, '/settings');
+
+                      // Trigger a reload of the home page if visible
+                      if (currentIndex == 0) {
+                        _homePageKey.currentState?.reloadData();
+                      }
+                    },
+                  ),
+
+                  // Delete all transactions
+                  ListTile(
+                    leading: const Icon(Icons.delete),
+                    title: const Text('Delete All Data'),
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Confirm Deletion'),
+                          content: const Text('Are you sure you want to delete all transaction data?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Delete', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        await DatabaseService.instance.deleteAllTransactions(); // Add this method if you haven’t
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(content: Text('All transactions deleted')),
+                        );
+                      }
+
+                      Navigator.pop(context);
+                    },
+                  ),
+
+                  // Reset preferences
+                  ListTile(
+                    leading: const Icon(Icons.restore),
+                    title: const Text('Reset Preferences'),
+                    onTap: () async {
+                      final confirm = await showDialog<bool>(
+                        context: context,
+                        builder: (context) => AlertDialog(
+                          title: const Text('Confirm Reset'),
+                          content: const Text('This will clear your preferences and restart setup. Continue?'),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, false),
+                              child: const Text('Cancel'),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(context, true),
+                              child: const Text('Reset', style: TextStyle(color: Colors.red)),
+                            ),
+                          ],
+                        ),
+                      );
+
+                      if (confirm == true) {
+                        final prefs = await SharedPreferences.getInstance();
+                        await prefs.clear();
+                        Navigator.of(context).pop(); // close drawer
+                        Navigator.pushReplacementNamed(context, '/setup');
+                      }
+                    },
+                  ),
+                ],
               ),
             ),
 
-            // Dark Mode Toggle
-            ListTile(
-              leading: const Icon(Icons.dark_mode),
-              title: const Text('Toggle Dark Mode'),
-              onTap: () async {
-                final prefs = await SharedPreferences.getInstance();
-                final isDark = prefs.getBool('isDarkMode') ?? false;
-                await widget.toggleTheme(!isDark);
-
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(content: Text('Dark mode ${!isDark ? "enabled" : "disabled"}')),
-                );
-              },
-            ),
-
-            // Go to Settings
-            ListTile(
-              leading: const Icon(Icons.settings),
-              title: const Text('Settings'),
-              onTap: () async {
-                Navigator.of(context).pop(); // Close drawer first
-
-                // Push settings page and wait for it to return
-                await Navigator.pushNamed(context, '/settings');
-
-                // Trigger a reload of the home page if visible
-                if (currentIndex == 0) {
-                  _homePageKey.currentState?.reloadData();
-                }
-              },
-            ),
-
-            // Delete all transactions
-            ListTile(
-              leading: const Icon(Icons.delete),
-              title: const Text('Delete All Data'),
-              onTap: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Confirm Deletion'),
-                    content: const Text('Are you sure you want to delete all transaction data?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Delete', style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm == true) {
-                  await DatabaseService.instance.deleteAllTransactions(); // Add this method if you haven’t
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('All transactions deleted')),
-                  );
-                }
-
-                Navigator.pop(context);
-              },
-            ),
-
-            // Reset preferences
-            ListTile(
-              leading: const Icon(Icons.restore),
-              title: const Text('Reset Preferences'),
-              onTap: () async {
-                final confirm = await showDialog<bool>(
-                  context: context,
-                  builder: (context) => AlertDialog(
-                    title: const Text('Confirm Reset'),
-                    content: const Text('This will clear your preferences and restart setup. Continue?'),
-                    actions: [
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, false),
-                        child: const Text('Cancel'),
-                      ),
-                      TextButton(
-                        onPressed: () => Navigator.pop(context, true),
-                        child: const Text('Reset', style: TextStyle(color: Colors.red)),
-                      ),
-                    ],
-                  ),
-                );
-
-                if (confirm == true) {
-                  final prefs = await SharedPreferences.getInstance();
-                  await prefs.clear();
-                  Navigator.of(context).pop(); // close drawer
-                  Navigator.pushReplacementNamed(context, '/setup');
-                }
-              },
+            // Footer text at bottom of drawer
+            Padding(
+              padding: const EdgeInsets.all(24.0),
+              child: Text(
+                'Made by Lewis Murphy (Defalt0402), 2025',
+                style: TextStyle(
+                  fontSize: 12,
+                  color: Colors.grey[600],
+                ),
+                textAlign: TextAlign.center,
+              ),
             ),
           ],
         ),
       ),
-
 
       body: IndexedStack(
         index: currentIndex,
