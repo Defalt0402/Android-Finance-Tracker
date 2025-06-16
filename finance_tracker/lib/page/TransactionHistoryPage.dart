@@ -1,14 +1,17 @@
+import 'package:finance_tracker/main.dart';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 
 import 'package:finance_tracker/service/database_service.dart';
 
 class TransactionHistoryPage extends StatefulWidget {
+  const TransactionHistoryPage({Key? key}) : super(key: key);
+
   @override
-  State<TransactionHistoryPage> createState() => _TransactionHistoryPageState();
+  State<TransactionHistoryPage> createState() => TransactionHistoryPageState();
 }
 
-class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
+class TransactionHistoryPageState extends State<TransactionHistoryPage> with RouteAware {
   final DatabaseService _databaseService = DatabaseService.instance;
 
   List<Map<String, dynamic>> _pastTransactions = [];
@@ -31,6 +34,11 @@ class _TransactionHistoryPageState extends State<TransactionHistoryPage> {
     });
   }
 
+  void reloadData() {
+    _loadTransactions();
+  }
+
+  // Calculate the total spent in a day
   double _calculateTotal(List<Map<String, dynamic>> transactions) {
     return transactions.fold(
       0.0,

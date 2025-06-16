@@ -326,7 +326,8 @@ class HomePageState extends State<HomePage> with RouteAware {
                                         leftTitles: AxisTitles(
                                           sideTitles: SideTitles(
                                             showTitles: true,
-                                            interval: 10,
+                                            interval: 100,
+                                            reservedSize: 42,
                                             getTitlesWidget: (value, meta) => Text('£${value.toStringAsFixed(0)}', style: TextStyle(fontSize: 10)),
                                           ),
                                         ),

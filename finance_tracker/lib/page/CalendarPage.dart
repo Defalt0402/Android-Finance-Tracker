@@ -5,11 +5,13 @@ import 'package:intl/intl.dart';
 import 'package:finance_tracker/service/database_service.dart';
 
 class CalendarPage extends StatefulWidget {
+  const CalendarPage({Key? key}) : super(key: key);
+
   @override
-  State<CalendarPage> createState() => _CalendarPageState();
+  State<CalendarPage> createState() => CalendarPageState();
 }
 
-class _CalendarPageState extends State<CalendarPage> {
+class CalendarPageState extends State<CalendarPage> {
   final DatabaseService _databaseService = DatabaseService.instance;
 
   DateTime _focusedDay = DateTime.now();
@@ -20,6 +22,11 @@ class _CalendarPageState extends State<CalendarPage> {
   @override
   void initState() {
     super.initState();
+    _selectedDay = _focusedDay;
+    _loadTransactionsForDay(_selectedDay!);
+  }
+
+  void reloadData() {
     _selectedDay = _focusedDay;
     _loadTransactionsForDay(_selectedDay!);
   }

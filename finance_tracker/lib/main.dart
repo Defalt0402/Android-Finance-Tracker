@@ -122,12 +122,14 @@ class _MainAppState extends State<MainApp> {
   final DatabaseService _databaseService = DatabaseService.instance;
 
   final GlobalKey<HomePageState> _homePageKey = GlobalKey<HomePageState>();
+  final GlobalKey<TransactionHistoryPageState> _transactionsPageKey = GlobalKey<TransactionHistoryPageState>();
+  final GlobalKey<CalendarPageState> _calendarPageKey = GlobalKey<CalendarPageState>();
   int currentIndex = 0;
 
   List<Widget> get screens => [
     HomePage(key: _homePageKey),
-    CalendarPage(),
-    TransactionHistoryPage()
+    CalendarPage(key: _calendarPageKey),
+    TransactionHistoryPage(key: _transactionsPageKey)
   ];
 
   @override
@@ -275,6 +277,10 @@ class _MainAppState extends State<MainApp> {
 
           if (index == 0) {
             _homePageKey.currentState?.reloadData();
+          } else if (index == 1) {
+            _calendarPageKey.currentState?.reloadData();
+          } else if (index == 2) {
+            _transactionsPageKey.currentState?.reloadData();
           }
         },
         items: const [
