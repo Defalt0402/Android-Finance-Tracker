@@ -17,7 +17,9 @@ class HomePage extends StatefulWidget {
 class HomePageState extends State<HomePage> with RouteAware {
   String _name = '';
   double _monthBudget = 0;
+  double _weeklyBudget = 0;
   double _amountSpent = 0.0;
+  double _weekSpent = 0;
 
   final DatabaseService _databaseService = DatabaseService.instance;
 
@@ -28,6 +30,7 @@ class HomePageState extends State<HomePage> with RouteAware {
     super.initState();
     _loadUserData();
     _loadMonthlySpending();
+    _loadWeeklySpending();
     _graphDataFuture = _getGraphData();  
   }
 
@@ -41,11 +44,41 @@ class HomePageState extends State<HomePage> with RouteAware {
     });
   }
 
+  Future<void> _loadWeeklySpending() async {
+    final now = DateTime.now();
+    final startOfWeek = now.subtract(Duration(days: now.weekday - 1));
+    final endOfWeek = startOfWeek.add(const Duration(days: 6));
+
+    final transactions = await _databaseService.getTransactionsBetween(
+      startOfWeek,
+      endOfWeek,
+    );
+
+    double total = 0.0;
+    for (var tx in transactions) {
+      final type = tx['type'] ?? 'spend';
+      if (type == 'spend') {
+        final amount = (tx['amount'] as num).toDouble();
+        total += amount;
+      }
+    }
+
+    setState(() {
+      _weekSpent = total;
+    });
+  }
+
   Future<void> _loadUserData() async {
     final prefs = await SharedPreferences.getInstance();
+    final monthBudget = prefs.getDouble('month_budget') ?? 0;
+    final weeklyBudget = prefs.getDouble('week_budget') ?? (monthBudget / 4);
+
+    await prefs.setDouble('week_budget', weeklyBudget); // Ensure it's stored
+
     setState(() {
       _name = prefs.getString('username') ?? 'User';
-      _monthBudget = prefs.getDouble('month_budget') ?? 0;
+      _monthBudget = monthBudget;
+      _weeklyBudget = weeklyBudget;
     });
   }
 
@@ -66,6 +99,7 @@ class HomePageState extends State<HomePage> with RouteAware {
   void didPush() {
     _loadMonthlySpending();
     _refreshGraphData();
+    _loadWeeklySpending();
   }
 
   // Called when the current route is again visible after a pop.
@@ -80,6 +114,7 @@ class HomePageState extends State<HomePage> with RouteAware {
     _loadUserData();
     _refreshGraphData();
     await _loadMonthlySpending();
+    await _loadWeeklySpending();
   }
 
   Future<Map<String, dynamic>> _getGraphData() async {
@@ -184,6 +219,10 @@ class HomePageState extends State<HomePage> with RouteAware {
       return Colors.red;
     }
 
+    double getWeeklyProgress() {
+      return (_weeklyBudget > 0) ? (_weekSpent / _weeklyBudget).clamp(0.0, 1.0) : 0.0;
+    }
+
     return Scaffold(
       backgroundColor: theme.drawerTheme.backgroundColor, 
       appBar: AppBar(
@@ -251,6 +290,36 @@ class HomePageState extends State<HomePage> with RouteAware {
                           value: progress,
                           backgroundColor: Colors.grey[300],
                           valueColor: AlwaysStoppedAnimation<Color>(getProgressColor(progress)),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text("Weekly Spending:",
+                          style: TextStyle(fontSize: 20, color: Colors.black)),
+                      const SizedBox(height: 8),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            TextSpan(
+                              text: '£${_weekSpent.toStringAsFixed(2)}',
+                              style: TextStyle(fontSize: 20, color: Colors.black54),
+                            ),
+                            TextSpan(
+                              text: '/£${_weeklyBudget.toStringAsFixed(2)}',
+                              style: TextStyle(fontSize: 30),
+                            ),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: LinearProgressIndicator(
+                          minHeight: 10,
+                          value: getWeeklyProgress(),
+                          backgroundColor: Colors.grey[300],
+                          valueColor: AlwaysStoppedAnimation<Color>(
+                            getProgressColor(getWeeklyProgress()),
+                          ),
                         ),
                       ),
                     ],

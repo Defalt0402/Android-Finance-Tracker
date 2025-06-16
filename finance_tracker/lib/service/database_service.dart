@@ -172,6 +172,18 @@ class DatabaseService {
     );
   }
 
+  Future<List<Map<String, dynamic>>> getTransactionsBetween(DateTime start, DateTime end) async {
+    final db = await database;
+    final startStr = DateFormat('yyyy-MM-dd').format(start);
+    final endStr = DateFormat('yyyy-MM-dd').format(end);
+
+    return await db.query(
+      'transactions',
+      where: 'date >= ? AND date <= ?',
+      whereArgs: [startStr, endStr],
+    );
+  }
+
   Future<void> deleteTransaction(int id) async {
     final db = await database;
     await db.delete('transactions', where: 'id = ?', whereArgs: [id]);

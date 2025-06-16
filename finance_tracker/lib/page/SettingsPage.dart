@@ -11,6 +11,7 @@ class SettingsPage extends StatefulWidget {
 class _SettingsPageState extends State<SettingsPage> {
   final TextEditingController _nameController = TextEditingController();
   final TextEditingController _budgetController = TextEditingController();
+  final TextEditingController _weeklyBudgetController = TextEditingController();
 
   @override
   void initState() {
@@ -21,16 +22,24 @@ class _SettingsPageState extends State<SettingsPage> {
   Future<void> _loadPreferences() async {
     final prefs = await SharedPreferences.getInstance();
     _nameController.text = prefs.getString('username') ?? '';
-    _budgetController.text = prefs.getDouble('monthlyBudget')?.toStringAsFixed(2) ?? '';
+    _budgetController.text =
+        prefs.getDouble('month_budget')?.toStringAsFixed(2) ?? '';
+    _weeklyBudgetController.text =
+        prefs.getDouble('week_budget')?.toStringAsFixed(2) ?? '';
   }
 
   Future<void> _savePreferences() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', _nameController.text.trim());
 
-    final budget = double.tryParse(_budgetController.text.trim());
-    if (budget != null) {
-      await prefs.setDouble('monthlyBudget', budget);
+    final monthlyBudget = double.tryParse(_budgetController.text.trim());
+    final weeklyBudget = double.tryParse(_weeklyBudgetController.text.trim());
+
+    if (monthlyBudget != null) {
+      await prefs.setDouble('month_budget', monthlyBudget);
+    }
+    if (weeklyBudget != null) {
+      await prefs.setDouble('week_budget', weeklyBudget);
     }
 
     ScaffoldMessenger.of(context).showSnackBar(
@@ -57,6 +66,7 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 8),
             TextField(
               controller: _nameController,
+              style: TextStyle(color: Colors.black),
               decoration: const InputDecoration(
                 hintText: 'Enter your name',
                 filled: true,
@@ -69,9 +79,24 @@ class _SettingsPageState extends State<SettingsPage> {
             const SizedBox(height: 8),
             TextField(
               controller: _budgetController,
-              keyboardType: TextInputType.numberWithOptions(decimal: true),
+              style: TextStyle(color: Colors.black),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
               decoration: const InputDecoration(
                 hintText: 'e.g. 1500.00',
+                filled: true,
+                fillColor: Colors.white,
+                border: OutlineInputBorder(),
+              ),
+            ),
+            const SizedBox(height: 20),
+            const Text('Weekly Budget (£)', style: TextStyle(fontSize: 16)),
+            const SizedBox(height: 8),
+            TextField(
+              controller: _weeklyBudgetController,
+              style: TextStyle(color: Colors.black),
+              keyboardType: const TextInputType.numberWithOptions(decimal: true),
+              decoration: const InputDecoration(
+                hintText: 'e.g. 375.00',
                 filled: true,
                 fillColor: Colors.white,
                 border: OutlineInputBorder(),
