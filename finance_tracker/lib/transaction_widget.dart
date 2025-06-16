@@ -130,7 +130,7 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
                       context: context,
                       initialDate: singleDate,
                       firstDate: DateTime(2020),
-                      lastDate: DateTime(2030),
+                      lastDate: DateTime(2100),
                     );
                     if (picked != null) setState(() => singleDate = picked);
                   },
@@ -153,7 +153,7 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
                           context: context,
                           initialDate: startDate,
                           firstDate: DateTime(2020),
-                          lastDate: DateTime(2030),
+                          lastDate: DateTime(2100),
                         );
                         if (picked != null) setState(() => startDate = picked);
                       },
@@ -172,7 +172,7 @@ class _AddTransactionWidgetState extends State<AddTransactionWidget> {
                           context: context,
                           initialDate: endDate,
                           firstDate: DateTime(2020),
-                          lastDate: DateTime(2030),
+                          lastDate: DateTime(2100),
                         );
                         if (picked != null) setState(() => endDate = picked);
                       },

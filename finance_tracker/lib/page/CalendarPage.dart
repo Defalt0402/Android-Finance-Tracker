@@ -64,6 +64,73 @@ class CalendarPageState extends State<CalendarPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                IconButton(
+                  icon: const Icon(Icons.chevron_left),
+                  onPressed: () {
+                    setState(() {
+                      _focusedDay = DateTime(
+                        _focusedDay.year,
+                        _focusedDay.month - 1,
+                        1,
+                      );
+                      _selectedDay = _focusedDay;
+                    });
+                    _loadTransactionsForDay(_focusedDay);
+                  },
+                ),
+
+                Expanded(
+                  child: Center(
+                    child: TextButton(
+                      onPressed: () async {
+                        final picked = await showDatePicker(
+                          context: context,
+                          initialDate: _focusedDay,
+                          firstDate: DateTime(2020),
+                          lastDate: DateTime(2100),
+                          helpText: 'Select month and year',
+                        );
+                        if (picked != null) {
+                          setState(() {
+                            _focusedDay = picked;
+                            _selectedDay = picked;
+                          });
+                          _loadTransactionsForDay(picked);
+                        }
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            DateFormat.yMMMM().format(_focusedDay),
+                            style: const TextStyle(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          const Icon(Icons.arrow_drop_down),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                IconButton(
+                  icon: const Icon(Icons.chevron_right),
+                  onPressed: () {
+                    setState(() {
+                      _focusedDay = DateTime(
+                        _focusedDay.year,
+                        _focusedDay.month + 1,
+                        1,
+                      );
+                      _selectedDay = _focusedDay;
+                    });
+                    _loadTransactionsForDay(_focusedDay);
+                  },
+                ),
+              ],
+            ),
             TableCalendar(
               firstDay: DateTime(2020),
               lastDay: DateTime(2030),
@@ -80,10 +147,7 @@ class CalendarPageState extends State<CalendarPage> {
                   shape: BoxShape.circle,
                 ),
               ),
-              headerStyle: HeaderStyle(
-                formatButtonVisible: false,
-                titleCentered: true
-              ),
+              headerVisible: false, // Hide the default header
             ),
             const SizedBox(height: 16),
             Text(
